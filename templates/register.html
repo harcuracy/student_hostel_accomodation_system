@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎓 Hostel Face Registration</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; background: #f4f6f8; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+    .container { text-align: center; background: #ffffff; padding: 50px 40px; border-radius: 12px; box-shadow: 0px 4px 12px rgba(0,0,0,0.1); width: 90%; max-width: 500px; }
+    h1 { color: #0078d7; margin-bottom: 15px; font-size: 28px; }
+    p { color: #555; font-size: 16px; margin-bottom: 20px; }
+    #video { border-radius: 12px; margin-bottom: 20px; width: 100%; }
+    .start-btn { display: inline-block; background: #0078d7; color: white; text-decoration: none; padding: 14px 24px; border-radius: 8px; font-size: 16px; transition: background 0.3s ease, transform 0.2s ease; }
+    .start-btn:hover { background: #005fa3; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎓 Hostel Face Registration</h1>
+    <p>Click below to open the camera and automatically allocate hall & room.</p>
+
+    <video id="video" autoplay></video>
+    <button class="start-btn" id="captureBtn">Start Recognition</button>
+    <p id="status"></p>
+  </div>
+
+  <script>
+    const video = document.getElementById("video");
+    const status = document.getElementById("status");
+    const captureBtn = document.getElementById("captureBtn");
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => { console.error("Error accessing camera:", err); });
+
+    captureBtn.addEventListener("click", async () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const imgData = canvas.toDataURL("image/jpeg");
+      status.innerText = "Processing...";
+
+      const res = await fetch("/recognize_face", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: imgData })
+      });
+
+      const data = await res.json();
+      if (data.name) {
+        status.innerText = `✅ ${data.name} allocated to ${data.hall} Room ${data.room}`;
+      } else {
+        status.innerText = "❌ No face recognized!";
+      }
+    });
+  </script>
+</body>
+</html>

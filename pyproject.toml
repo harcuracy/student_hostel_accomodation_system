@@ -1,0 +1,7 @@
+[project]
+name = "accomondation-system"
+version = "0.1.0"
+description = "using deep learning model for student accomondation "
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
